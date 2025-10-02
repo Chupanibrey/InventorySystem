@@ -9,11 +9,13 @@ public class BaseItemData : ScriptableObject
     public ItemType Type;
     public bool IsStackable;
     public int MaxStackCount = 1;
+    public string ItemID; // Для сохранения/загрузки
 }
 
 public enum ItemType
 {
     Weapon,
     Potion,
-    QuestItem
+    QuestItem,
+    Resource
 }

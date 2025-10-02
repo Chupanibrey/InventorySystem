@@ -11,11 +11,15 @@ public class InventoryUI : MonoBehaviour
     private void Start()
     {
         InitializeUI();
-        inventory.OnInventoryChanged += RefreshUI; // Подписка на событие
+        inventory.OnInventoryChanged += RefreshUI;
     }
 
     private void InitializeUI()
     {
+        // Очистка старых слотов
+        foreach (Transform child in inventoryGridParent)
+            Destroy(child.gameObject);
+
         slotUIs = new InventorySlotUI[inventory.Width, inventory.Height];
 
         for (int y = 0; y < inventory.Height; y++)
@@ -34,11 +38,14 @@ public class InventoryUI : MonoBehaviour
     private void RefreshUI()
     {
         for (int y = 0; y < inventory.Height; y++)
-        {
             for (int x = 0; x < inventory.Width; x++)
-            {
-                slotUIs[x, y].UpdateSlotUI(inventory.Slots[x, y]);
-            }
-        }
+                if (slotUIs[x, y] != null)
+                    slotUIs[x, y].UpdateSlotUI(inventory.Slots[x, y]);
+    }
+
+    private void OnDestroy()
+    {
+        if (inventory != null)
+            inventory.OnInventoryChanged -= RefreshUI;
     }
 }
