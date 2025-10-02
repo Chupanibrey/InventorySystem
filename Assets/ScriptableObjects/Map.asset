@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Map
   m_EditorClassIdentifier: Assembly-CSharp::BaseItemData
   ItemName: Coin
-  Icon: {fileID: 4804446361586417100, guid: 383366887274f03448afd9c7ff121ed2, type: 3}
-  Description: 
+  Icon: {fileID: -7688356529983298438, guid: 31196c108d75f3e4aa427333c3227f04, type: 3}
+  Description: "\u041A\u0430\u0440\u0442\u0430 \u0441\u043E\u043A\u0440\u043E\u0432\u0438\u0449"
   Type: 2
   IsStackable: 0
   MaxStackCount: 1

@@ -229,6 +229,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Inventory
   Width: 5
   Height: 4
+  testItems:
+  - {fileID: 11400000, guid: 5329596a09dfe0947ab27a20e0ffcfb9, type: 2}
+  - {fileID: 11400000, guid: 15fbd39db7f914241b091eaeb1b99a9f, type: 2}
+  - {fileID: 11400000, guid: 2fca1795d996d444b8303630fe9285b6, type: 2}
 --- !u!4 &241168734
 Transform:
   m_ObjectHideFlags: 0

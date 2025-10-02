@@ -21,9 +21,25 @@ public class Inventory : MonoBehaviour
         }
     }
 
+    [Header("Test Data")]
+    public BaseItemData[] testItems;
+
     private void Start()
     {
-        TestAddItems();
+        InitializeTestData();
+    }
+
+    private void InitializeTestData()
+    {
+        Slots[0, 0].AssignItem(testItems[0], 1);
+        Slots[0, 3].AssignItem(testItems[0], 1);
+        Slots[2, 3].AssignItem(testItems[0], 1);
+
+        Slots[3, 3].AssignItem(testItems[1], 1);
+
+        Slots[4, 2].AssignItem(testItems[2], 1);
+
+        OnInventoryChanged?.Invoke();
     }
 
     private void TestAddItems()
@@ -38,16 +54,16 @@ public class Inventory : MonoBehaviour
 
     public void MoveItem(int fromX, int fromY, int toX, int toY)
     {
-        if (!IsValidSlot(fromX, fromY) || !IsValidSlot(toX, toY)) return;
+        if (!IsValidSlot(fromX, fromY) || !IsValidSlot(toX, toY) || (fromX == toX && fromY == toY))
+            return;
 
         InventorySlot fromSlot = Slots[fromX, fromY];
         InventorySlot toSlot = Slots[toX, toY];
 
-        if (fromSlot.IsEmpty) return;
+        if (fromSlot.IsEmpty)
+            return;
 
-        if (!fromSlot.IsEmpty && !toSlot.IsEmpty &&
-            fromSlot.ItemData == toSlot.ItemData &&
-            fromSlot.ItemData.IsStackable)
+        if (!toSlot.IsEmpty && fromSlot.ItemData == toSlot.ItemData && fromSlot.ItemData.IsStackable)
         {
             int totalCount = fromSlot.ItemCount + toSlot.ItemCount;
             int maxStack = fromSlot.ItemData.MaxStackCount;
@@ -62,21 +78,19 @@ public class Inventory : MonoBehaviour
                 toSlot.ItemCount = maxStack;
                 fromSlot.ItemCount = totalCount - maxStack;
             }
+            OnInventoryChanged?.Invoke();
+            return;
         }
-        else
-        {
-            // Смена слотов
-            InventorySlot tempSlot = new InventorySlot();
-            tempSlot.AssignItem(toSlot.ItemData, toSlot.ItemCount);
 
-            toSlot.AssignItem(fromSlot.ItemData, fromSlot.ItemCount);
-            fromSlot.AssignItem(tempSlot.ItemData, tempSlot.ItemCount);
-        }
+        BaseItemData tempData = fromSlot.ItemData;
+        int tempCount = fromSlot.ItemCount;
+
+        fromSlot.AssignItem(toSlot.ItemData, toSlot.ItemCount);
+        toSlot.AssignItem(tempData, tempCount);
 
         OnInventoryChanged?.Invoke();
     }
 
-    // Проверка выхода за границы массива
     private bool IsValidSlot(int x, int y)
     {
         return x >= 0 && x < Width && y >= 0 && y < Height;

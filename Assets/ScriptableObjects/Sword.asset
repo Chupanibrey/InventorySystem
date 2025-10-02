@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sword
   m_EditorClassIdentifier: Assembly-CSharp::BaseItemData
   ItemName: Sword
-  Icon: {fileID: -7843998890156485123, guid: 02ddbb4e43c95474cb872d6ebd4e50c2, type: 3}
-  Description: 
+  Icon: {fileID: -7843998890156485123, guid: 1f4807a8c2461784a8f7e410aa4bdf22, type: 3}
+  Description: "\u041C\u0435\u0447"
   Type: 0
   IsStackable: 0
   MaxStackCount: 1

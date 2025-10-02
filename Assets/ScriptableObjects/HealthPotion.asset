@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: HealthPotion
   m_EditorClassIdentifier: Assembly-CSharp::BaseItemData
   ItemName: HealthPotion
-  Icon: {fileID: 258735269523343206, guid: 58dab121f62401e4a8fbb6029ce6ed53, type: 3}
-  Description: 
+  Icon: {fileID: 3460918638392189363, guid: d65a81bafef51a64a9cb530c9c408d1e, type: 3}
+  Description: "\u0417\u0435\u043B\u044C\u0435 \u043B\u0435\u0447\u0435\u043D\u0438\u044F"
   Type: 1
   IsStackable: 1
   MaxStackCount: 3
