@@ -147,6 +147,7 @@ GameObject:
   - component: {fileID: 6315312294009692306}
   - component: {fileID: 8957912281902647978}
   - component: {fileID: 1675960466020583712}
+  - component: {fileID: 327698856413097099}
   m_Layer: 5
   m_Name: InventorySlot
   m_TagString: Untagged
@@ -204,7 +205,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -213,6 +214,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &327698856413097099
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7618939259911204279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a18ad10f75551c49b04d87acaf4eee0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventorySlotUI
+  itemIconImage: {fileID: 9048683110963277713}
+  stackCountText: {fileID: 6590191802152681059}
+  slotButton: {fileID: 0}
 --- !u!1 &8197891966970406919
 GameObject:
   m_ObjectHideFlags: 0
@@ -224,6 +240,7 @@ GameObject:
   - component: {fileID: 4621025827476862956}
   - component: {fileID: 1666483653587174526}
   - component: {fileID: 9048683110963277713}
+  - component: {fileID: 9070209128442454766}
   m_Layer: 5
   m_Name: ItemIcon
   m_TagString: Untagged
@@ -288,3 +305,17 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &9070209128442454766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8197891966970406919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abbb64da48ddbe746a5839644a337493, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DraggableItem
+  image: {fileID: 9048683110963277713}
+  parentAfterDrag: {fileID: 0}
