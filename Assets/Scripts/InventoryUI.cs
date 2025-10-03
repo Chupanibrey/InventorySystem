@@ -32,6 +32,7 @@ public class InventoryUI : MonoBehaviour
                 slotUIs[x, y] = slotUI;
             }
         }
+
         RefreshUI();
     }
 
@@ -39,8 +40,7 @@ public class InventoryUI : MonoBehaviour
     {
         for (int y = 0; y < inventory.Height; y++)
             for (int x = 0; x < inventory.Width; x++)
-                if (slotUIs[x, y] != null)
-                    slotUIs[x, y].UpdateSlotUI(inventory.Slots[x, y]);
+                slotUIs[x, y]?.UpdateSlotDisplay(inventory.Slots[x, y]);
     }
 
     private void OnDestroy()

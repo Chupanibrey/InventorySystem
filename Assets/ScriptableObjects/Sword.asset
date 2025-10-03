@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8da6704b6eeb254cafdabcbc7856492, type: 3}
   m_Name: Sword
   m_EditorClassIdentifier: Assembly-CSharp::BaseItemData
-  ItemName: Sword
+  ItemName: "\u041C\u0435\u0447 \u0410\u0440\u0442\u0443\u0440\u0430"
   Icon: {fileID: -7843998890156485123, guid: 1f4807a8c2461784a8f7e410aa4bdf22, type: 3}
-  Description: "\u041C\u0435\u0447"
+  Description: "\u0412 \u043D\u0451\u043C \u043F\u0443\u043B\u044C\u0441\u0438\u0440\u0443\u0435\u0442
+    \u0441\u0438\u043B\u0430."
   Type: 0
   IsStackable: 0
   MaxStackCount: 1
+  ItemID: 

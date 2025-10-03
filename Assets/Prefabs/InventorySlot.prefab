@@ -229,8 +229,14 @@ MonoBehaviour:
   itemIconImage: {fileID: 9048683110963277713}
   stackCountText: {fileID: 6590191802152681059}
   backgroundImage: {fileID: 1675960466020583712}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  hoverColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  canvasGroup: {fileID: 5325887329682350058}
+  normalColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  hoverColor: {r: 0.7, g: 0.8, b: 1, a: 1}
+  emptyColor: {r: 0.3, g: 0.3, b: 0.3, a: 0.5019608}
+  equippedColor: {r: 0.2, g: 0.8, b: 0.2, a: 0.6}
+  equippedHoverColor: {r: 0.3, g: 0.9, b: 0.3, a: 0.8}
+  hoverScale: 1.1
+  animationDuration: 0.2
 --- !u!1 &8197891966970406919
 GameObject:
   m_ObjectHideFlags: 0
@@ -334,4 +340,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DraggableItem
   image: {fileID: 9048683110963277713}
   canvasGroup: {fileID: 5325887329682350058}
-  parentAfterDrag: {fileID: 0}

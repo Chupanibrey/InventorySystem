@@ -10,7 +10,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     private GameObject dragObject;
     private Canvas canvas;
     private InventorySlotUI originalSlot;
-    private bool isDragging = false;
+    private bool isDragging;
 
     private void Awake()
     {
@@ -31,7 +31,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         CreateDragObject();
 
         image.raycastTarget = false;
-        if (canvasGroup != null) canvasGroup.alpha = 0.3f;
+        canvasGroup.alpha = 0.3f;
     }
 
     private void CreateDragObject()
@@ -65,13 +65,12 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         isDragging = false;
         RestoreOriginalAppearance();
         CleanupDragObject();
-        originalSlot?.UpdateSlotDisplay();
     }
 
     private void RestoreOriginalAppearance()
     {
         image.raycastTarget = true;
-        if (canvasGroup != null) canvasGroup.alpha = 1f;
+        canvasGroup.alpha = 1f;
     }
 
     private void CleanupDragObject()

@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8da6704b6eeb254cafdabcbc7856492, type: 3}
   m_Name: HealthPotion
   m_EditorClassIdentifier: Assembly-CSharp::BaseItemData
-  ItemName: HealthPotion
+  ItemName: "\u0417\u0435\u043B\u044C\u0435 \u043B\u0435\u0447\u0435\u043D\u0438\u044F"
   Icon: {fileID: 3460918638392189363, guid: d65a81bafef51a64a9cb530c9c408d1e, type: 3}
-  Description: "\u0417\u0435\u043B\u044C\u0435 \u043B\u0435\u0447\u0435\u043D\u0438\u044F"
+  Description: "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u0430\u0432\u043B\u0438\u0432\u0430\u0435\u0442
+    50 \u0435\u0434\u0438\u043D\u0438\u0446 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F."
   Type: 1
   IsStackable: 1
   MaxStackCount: 3
+  ItemID: 

@@ -1,141 +1,211 @@
-﻿using NUnit.Framework.Interfaces;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System.Collections;
 
 public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropHandler, IPointerClickHandler
 {
+    [Header("Ссылки")]
     [SerializeField] private Image itemIconImage;
     [SerializeField] private TextMeshProUGUI stackCountText;
     [SerializeField] private Image backgroundImage;
+    [SerializeField] private CanvasGroup canvasGroup;
+
+    [Header("Цвета")]
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color hoverColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+    [SerializeField] private Color emptyColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+    [SerializeField] private Color equippedColor = new Color(0.2f, 0.8f, 0.2f, 0.6f);
+    [SerializeField] private Color equippedHoverColor = new Color(0.3f, 0.9f, 0.3f, 0.8f);
+
+    [Header("Анимация")]
+    [SerializeField] private float hoverScale = 1.1f;
+    [SerializeField] private float animationDuration = 0.2f;
 
     private Inventory inventory;
-    private int slotIndexX;
-    private int slotIndexY;
-    private bool isPointerOver = false;
-    private DraggableItem draggableItem;
+    private int slotIndexX, slotIndexY;
+    private RectTransform rectTransform;
+    private Vector3 originalScale;
+    private Coroutine scaleCoroutine;
+    private bool isEquipped;
+    private bool isPointerOver;
+    private InventorySlot currentSlot;
 
     public void Init(Inventory inventory, int x, int y)
     {
         this.inventory = inventory;
         slotIndexX = x;
         slotIndexY = y;
+        rectTransform = GetComponent<RectTransform>();
+        originalScale = rectTransform.localScale;
 
-        draggableItem = itemIconImage.GetComponent<DraggableItem>();
-        if (draggableItem == null)
-            draggableItem = itemIconImage.gameObject.AddComponent<DraggableItem>();
+        inventory.OnItemEquipped += OnItemEquipped;
+        inventory.OnItemUnequipped += OnItemUnequipped;
+
+        if (itemIconImage.GetComponent<DraggableItem>() == null)
+            itemIconImage.gameObject.AddComponent<DraggableItem>();
     }
 
-    public void UpdateSlotUI(InventorySlot slot) => UpdateSlotDisplay();
-
-    public void UpdateSlotDisplay()
+    public void UpdateSlotDisplay(InventorySlot slot)
     {
-        var slot = inventory.Slots[slotIndexX, slotIndexY];
+        currentSlot = slot;
 
-        if (slot != null && !slot.IsEmpty)
-        {
-            itemIconImage.sprite = slot.ItemData.Icon;
-            itemIconImage.enabled = true;
-            stackCountText.text = slot.ItemCount > 1 ? slot.ItemCount.ToString() : "";
-
-            if (draggableItem != null)
-            {
-                draggableItem.enabled = true;
-                RestoreIconAppearance();
-            }
-        }
-        else
+        if (slot.IsEmpty)
         {
             itemIconImage.sprite = null;
             itemIconImage.enabled = false;
             stackCountText.text = "";
+            isEquipped = false;
+        }
+        else
+        {
+            itemIconImage.sprite = slot.ItemData.Icon;
+            itemIconImage.enabled = true;
+            stackCountText.text = slot.ItemCount > 1 ? slot.ItemCount.ToString() : "";
+            isEquipped = slot.IsEquipped;
+        }
 
-            if (draggableItem != null)
-                draggableItem.enabled = false;
+        UpdateBackgroundColor();
+    }
+
+    private void UpdateBackgroundColor()
+    {
+        if (backgroundImage == null) return;
+
+        if (currentSlot == null || currentSlot.IsEmpty)
+        {
+            backgroundImage.color = isPointerOver ? hoverColor : emptyColor;
+            return;
+        }
+
+        if (isPointerOver)
+        {
+            backgroundImage.color = isEquipped ? equippedHoverColor : hoverColor;
+        }
+        else
+        {
+            backgroundImage.color = isEquipped ? equippedColor : normalColor;
         }
     }
 
-    private void RestoreIconAppearance()
+    private void OnItemEquipped(BaseItemData itemData)
     {
-        if (itemIconImage != null)
+        var slot = inventory.Slots[slotIndexX, slotIndexY];
+        if (!slot.IsEmpty && slot.ItemData == itemData)
         {
-            itemIconImage.raycastTarget = true;
+            isEquipped = true;
+            UpdateBackgroundColor();
+        }
+    }
 
-            CanvasGroup canvasGroup = itemIconImage.GetComponent<CanvasGroup>();
-            if (canvasGroup != null)
-            {
-                canvasGroup.alpha = 1f;
-                canvasGroup.blocksRaycasts = true;
-            }
-
-            Color color = itemIconImage.color;
-            color.a = 1f;
-            itemIconImage.color = color;
+    private void OnItemUnequipped(BaseItemData itemData)
+    {
+        var slot = inventory.Slots[slotIndexX, slotIndexY];
+        if (!slot.IsEmpty && slot.ItemData == itemData)
+        {
+            isEquipped = false;
+            UpdateBackgroundColor();
         }
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
         isPointerOver = true;
-        if (backgroundImage != null) backgroundImage.color = hoverColor;
+        UpdateBackgroundColor();
+        ScaleElement(hoverScale);
 
-        if (!inventory.Slots[slotIndexX, slotIndexY].IsEmpty)
-        {
-            var slot = inventory.Slots[slotIndexX, slotIndexY];
-        }
+        var slot = inventory.Slots[slotIndexX, slotIndexY];
+        if (!slot.IsEmpty)
+            TooltipManager.Instance.ShowTooltip(slot.ItemData, GetTooltipPosition());
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         isPointerOver = false;
-        if (backgroundImage != null) backgroundImage.color = normalColor;
+        UpdateBackgroundColor();
+        ScaleElement(1f);
+        TooltipManager.Instance.HideTooltip();
+    }
+
+    private Vector2 GetTooltipPosition()
+    {
+        var slotRect = rectTransform.rect;
+        var position = rectTransform.position;
+        return new Vector2(position.x + slotRect.width, position.y);
+    }
+
+    private void ScaleElement(float targetScale)
+    {
+        if (scaleCoroutine != null)
+            StopCoroutine(scaleCoroutine);
+
+        scaleCoroutine = StartCoroutine(AnimateScale(targetScale));
+    }
+
+    private IEnumerator AnimateScale(float targetScale)
+    {
+        Vector3 startScale = rectTransform.localScale;
+        Vector3 endScale = originalScale * targetScale;
+        float time = 0;
+
+        while (time < animationDuration)
+        {
+            rectTransform.localScale = Vector3.Lerp(startScale, endScale, time / animationDuration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        rectTransform.localScale = endScale;
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        DraggableItem droppedItem = eventData.pointerDrag?.GetComponent<DraggableItem>();
-        if (droppedItem != null)
-        {
-            InventorySlotUI fromSlot = droppedItem.GetComponentInParent<InventorySlotUI>();
-            if (fromSlot != null && fromSlot != this)
-            {
-                inventory.MoveItem(fromSlot.slotIndexX, fromSlot.slotIndexY, slotIndexX, slotIndexY);
-            }
-            else if (fromSlot == this)
-            {
-                UpdateSlotDisplay();
-            }
-        }
+        var droppedItem = eventData.pointerDrag?.GetComponent<DraggableItem>();
+        if (droppedItem == null) return;
+
+        var fromSlot = droppedItem.GetComponentInParent<InventorySlotUI>();
+        if (fromSlot != null)
+            inventory.MoveItem(fromSlot.slotIndexX, fromSlot.slotIndexY, slotIndexX, slotIndexY);
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
         var slot = inventory.Slots[slotIndexX, slotIndexY];
-        if (slot.IsEmpty)
-            return;
+        if (slot.IsEmpty) return;
 
-        // Двойной клик - использование
         if (eventData.button == PointerEventData.InputButton.Left && eventData.clickCount == 2)
         {
-            Debug.Log($"Двойной клик: использование предмета '{slot.ItemData.ItemName}' из слота [{slotIndexX}, {slotIndexY}]");
             inventory.UseItem(slotIndexX, slotIndexY);
         }
-        // Правый клик - удаление
         else if (eventData.button == PointerEventData.InputButton.Right)
         {
-            Debug.Log($"Правый клик: удаление предмета '{slot.ItemData.ItemName}' из слота [{slotIndexX}, {slotIndexY}]");
             inventory.RemoveItem(slotIndexX, slotIndexY, 1);
         }
+
+        TooltipManager.Instance.HideTooltip();
     }
 
     private void OnDisable()
     {
-        if (isPointerOver)
+        isPointerOver = false;
+        TooltipManager.Instance?.HideTooltip();
+
+        if (scaleCoroutine != null)
         {
-            isPointerOver = false;
+            StopCoroutine(scaleCoroutine);
+            rectTransform.localScale = originalScale;
+        }
+
+        UpdateBackgroundColor();
+    }
+
+    private void OnDestroy()
+    {
+        if (inventory != null)
+        {
+            inventory.OnItemEquipped -= OnItemEquipped;
+            inventory.OnItemUnequipped -= OnItemUnequipped;
         }
     }
 }
