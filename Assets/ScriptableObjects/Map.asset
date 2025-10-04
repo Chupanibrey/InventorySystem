@@ -20,3 +20,5 @@ MonoBehaviour:
   IsStackable: 0
   MaxStackCount: 1
   ItemID: 
+  IsEquippable: 0
+  EquipmentSlot: 0

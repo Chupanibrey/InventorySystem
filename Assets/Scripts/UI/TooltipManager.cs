@@ -29,11 +29,7 @@ public class TooltipManager : MonoBehaviour
 
     private void InitializeTooltip()
     {
-        if (tooltipPrefab == null)
-        {
-            Debug.LogError("TooltipPrefab не назначен!");
-            return;
-        }
+        if (tooltipPrefab == null) return;
 
         CreateTooltipCanvas();
         tooltipInstance = Instantiate(tooltipPrefab, tooltipCanvas.transform);
@@ -71,9 +67,6 @@ public class TooltipManager : MonoBehaviour
         itemNameText = FindTextComponent("ItemNameText");
         itemTypeText = FindTextComponent("ItemTypeText");
         itemDescriptionText = FindTextComponent("ItemDescriptionText");
-
-        if (itemNameText == null || itemTypeText == null || itemDescriptionText == null)
-            Debug.LogError("Не все текстовые компоненты найдены!");
     }
 
     private TextMeshProUGUI FindTextComponent(string name)

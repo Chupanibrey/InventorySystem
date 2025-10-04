@@ -1,19 +1,19 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class Inventory : MonoBehaviour
 {
     public int Width = 5;
     public int Height = 4;
     public InventorySlot[,] Slots { get; private set; }
+    public Dictionary<EquipmentSlot, InventorySlot> EquipmentSlots { get; private set; }
 
     public event Action OnInventoryChanged;
     public event Action<BaseItemData> OnItemUsed;
     public event Action<BaseItemData> OnItemEquipped;
     public event Action<BaseItemData> OnItemUnequipped;
-
-    public Dictionary<EquipmentSlot, InventorySlot> EquipmentSlots { get; private set; }
+    public event Action<Vector2Int, Vector2Int> OnItemMoved;
 
     [Header("Тестовые данные")]
     public BaseItemData[] testItems;
@@ -23,6 +23,8 @@ public class Inventory : MonoBehaviour
         InitializeSlots();
         InitializeEquipmentSlots();
     }
+
+    private void Start() => InitializeTestData();
 
     private void InitializeSlots()
     {
@@ -35,7 +37,6 @@ public class Inventory : MonoBehaviour
     private void InitializeEquipmentSlots()
     {
         EquipmentSlots = new Dictionary<EquipmentSlot, InventorySlot>();
-
         foreach (EquipmentSlot slotType in Enum.GetValues(typeof(EquipmentSlot)))
         {
             if (slotType != EquipmentSlot.None)
@@ -43,23 +44,14 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    private void Start() => InitializeTestData();
-
     private void InitializeTestData()
     {
-        // Очистка всех слотов
-        for (int y = 0; y < Height; y++)
-            for (int x = 0; x < Width; x++)
-                Slots[x, y].ClearSlot();
+        ClearAllSlots();
 
-        foreach (var slot in EquipmentSlots.Values)
-            slot.ClearSlot();
-
-        // Заполнение тестовыми данными
         if (testItems != null && testItems.Length > 0 && Width > 0 && Height > 0)
         {
             if (testItems.Length > 0) Slots[0, 0].AssignItem(testItems[0], 2);
-            if (testItems.Length > 0) Slots[0, 1].AssignItem(testItems[0], 1);
+            if (testItems.Length > 0) Slots[0, 1].AssignItem(testItems[0], 2);
             if (testItems.Length > 1) Slots[1, 1].AssignItem(testItems[1], 1);
             if (testItems.Length > 2) Slots[1, 2].AssignItem(testItems[2], 1);
         }
@@ -67,17 +59,22 @@ public class Inventory : MonoBehaviour
         OnInventoryChanged?.Invoke();
     }
 
+    private void ClearAllSlots()
+    {
+        for (int y = 0; y < Height; y++)
+            for (int x = 0; x < Width; x++)
+                Slots[x, y].ClearSlot();
+
+        foreach (var slot in EquipmentSlots.Values)
+            slot.ClearSlot();
+    }
+
     public bool TryAddItem(BaseItemData itemData, int quantity = 1)
     {
-        if (itemData == null)
-        {
-            Debug.LogWarning("Попытка добавить null предмет");
-            return false;
-        }
+        if (itemData == null) return false;
 
         int remainingQuantity = quantity;
 
-        // Добавление в существующие стеки
         if (itemData.IsStackable)
             remainingQuantity = AddToExistingStacks(itemData, remainingQuantity);
 
@@ -87,7 +84,6 @@ public class Inventory : MonoBehaviour
             return true;
         }
 
-        // Добавление в пустые слоты
         remainingQuantity = AddToEmptySlots(itemData, remainingQuantity);
 
         bool success = remainingQuantity <= 0;
@@ -150,16 +146,20 @@ public class Inventory : MonoBehaviour
 
         if (fromSlot.IsEmpty) return;
 
-        // Попытка объединения стеков
+        // Сохраняем информацию для анимации
+        var fromPosition = new Vector2Int(fromX, fromY);
+        var toPosition = new Vector2Int(toX, toY);
+
         if (TryMergeStacks(fromSlot, toSlot))
         {
             OnInventoryChanged?.Invoke();
+            OnItemMoved?.Invoke(fromPosition, toPosition);
             return;
         }
 
-        // Обмен предметами
         SwapSlots(fromSlot, toSlot);
         OnInventoryChanged?.Invoke();
+        OnItemMoved?.Invoke(fromPosition, toPosition);
     }
 
     private bool TryMergeStacks(InventorySlot fromSlot, InventorySlot toSlot)
@@ -213,20 +213,10 @@ public class Inventory : MonoBehaviour
             case ItemType.Potion:
                 UsePotion(slot, x, y);
                 break;
-
             case ItemType.Weapon:
             case ItemType.Armor:
             case ItemType.Accessory:
-                if (itemData.IsEquippable)
-                    ToggleEquipment(slot, x, y);
-                break;
-
-            case ItemType.QuestItem:
-                Debug.Log($"Использован квестовый предмет: {itemData.ItemName}");
-                break;
-
-            case ItemType.Resource:
-                Debug.Log($"Использован ресурс: {itemData.ItemName}");
+                if (itemData.IsEquippable) ToggleEquipment(slot, x, y);
                 break;
         }
     }
@@ -236,10 +226,7 @@ public class Inventory : MonoBehaviour
         slot.ItemCount--;
 
         if (slot.ItemCount <= 0)
-        {
             slot.ClearSlot();
-            Debug.Log($"Слот [{x}, {y}] очищен");
-        }
 
         OnInventoryChanged?.Invoke();
     }
@@ -265,7 +252,6 @@ public class Inventory : MonoBehaviour
         }
         else
         {
-            // Экипировка в пустой слот
             slot.SetEquipped(true);
             if (EquipmentSlots.ContainsKey(equipmentSlot))
             {
@@ -293,7 +279,6 @@ public class Inventory : MonoBehaviour
         var itemData = slot.ItemData;
         var equipmentSlot = itemData.EquipmentSlot;
 
-        // Поиск пустого слота для предмета
         for (int inventoryY = 0; inventoryY < Height; inventoryY++)
         {
             for (int inventoryX = 0; inventoryX < Width; inventoryX++)
@@ -312,8 +297,6 @@ public class Inventory : MonoBehaviour
                 }
             }
         }
-
-        Debug.Log($"Не удалось снять предмет {itemData.ItemName} - нет места в инвентаре");
     }
 
     public void RemoveItem(int x, int y, int amount = 1)
@@ -336,6 +319,101 @@ public class Inventory : MonoBehaviour
         OnInventoryChanged?.Invoke();
     }
 
+    public void SortByType()
+    {
+        var allItems = CollectAllItems();
+
+        allItems.Sort((a, b) =>
+        {
+            int typeComparison = a.ItemData.Type.CompareTo(b.ItemData.Type);
+            return typeComparison != 0 ? typeComparison : string.Compare(a.ItemData.ItemName, b.ItemData.ItemName, StringComparison.Ordinal);
+        });
+
+        RedistributeItems(allItems);
+    }
+
+    public void SortByName()
+    {
+        var allItems = CollectAllItems();
+
+        allItems.Sort((a, b) =>
+            string.Compare(a.ItemData.ItemName, b.ItemData.ItemName, StringComparison.Ordinal));
+
+        RedistributeItems(allItems);
+    }
+
+    private List<InventorySlot> CollectAllItems()
+    {
+        var items = new List<InventorySlot>();
+
+        for (int y = 0; y < Height; y++)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                var slot = Slots[x, y];
+                if (!slot.IsEmpty)
+                {
+                    items.Add(new InventorySlot
+                    {
+                        ItemData = slot.ItemData,
+                        ItemCount = slot.ItemCount,
+                        IsEquipped = slot.IsEquipped
+                    });
+                }
+            }
+        }
+
+        return items;
+    }
+
+    private void RedistributeItems(List<InventorySlot> sortedItems)
+    {
+        for (int y = 0; y < Height; y++)
+            for (int x = 0; x < Width; x++)
+                Slots[x, y].ClearSlot();
+
+        int itemIndex = 0;
+        for (int y = 0; y < Height && itemIndex < sortedItems.Count; y++)
+        {
+            for (int x = 0; x < Width && itemIndex < sortedItems.Count; x++)
+            {
+                var item = sortedItems[itemIndex];
+                Slots[x, y].AssignItem(item.ItemData, item.ItemCount);
+
+                if (item.IsEquipped)
+                {
+                    Slots[x, y].SetEquipped(true);
+                    var equipmentSlot = item.ItemData.EquipmentSlot;
+                    if (EquipmentSlots.ContainsKey(equipmentSlot))
+                    {
+                        EquipmentSlots[equipmentSlot].AssignItem(item.ItemData, item.ItemCount);
+                        EquipmentSlots[equipmentSlot].SetEquipped(true);
+                    }
+                }
+
+                itemIndex++;
+            }
+        }
+
+        UpdateEquipmentVisuals();
+        OnInventoryChanged?.Invoke();
+    }
+
+    private void UpdateEquipmentVisuals()
+    {
+        for (int y = 0; y < Height; y++)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                var slot = Slots[x, y];
+                if (slot.IsEquipped)
+                {
+                    OnItemEquipped?.Invoke(slot.ItemData);
+                }
+            }
+        }
+    }
+
     private bool IsValidSlot(int x, int y) => x >= 0 && x < Width && y >= 0 && y < Height;
 
     [ContextMenu("Добавить случайный предмет")]
@@ -347,6 +425,12 @@ public class Inventory : MonoBehaviour
             TryAddItem(randomItem, 1);
         }
     }
+
+    [ContextMenu("Сортировать по типу")]
+    private void SortByTypeTest() => SortByType();
+
+    [ContextMenu("Сортировать по имени")]
+    private void SortByNameTest() => SortByName();
 
     [ContextMenu("Обновить UI")]
     public void ForceRefreshUI() => OnInventoryChanged?.Invoke();
